@@ -58,7 +58,11 @@ jobs:
   c_sharp_macos:
     strategy:
       fail-fast: false
-    runs-on: macos-14
+      matrix:
+        include:
+          - platform: macos-13
+          - platform: macos-14
+    runs-on: ${{ matrix.platform }}
     steps:
       - name: Install Rust components
         run: |
