@@ -51,10 +51,15 @@ jobs:
         run: |
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
+      - name: Build Release NUPKG
+        run: |
+          cd c_sharp
+          ./build-release-nupkg.sh
       - uses: actions/upload-artifact@v3
         with:
-          name: libldkcsharp
-          path: libldkcsharp_release*.so
+          name: org.ldk.nupkg
+          path: c_sharp/org.ldk.nupkg
+          
   c_sharp_macos:
     strategy:
       fail-fast: false
@@ -104,7 +109,11 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
+      - name: Build Release NUPKG
+        run: |
+          cd c_sharp
+          ./build-release-nupkg.sh
       - uses: actions/upload-artifact@v3
         with:
-          name: libldkcsharp
-          path: libldkcsharp_release*.so
+          name: org.ldk.nupkg
+          path: c_sharp/org.ldk.nupkg
