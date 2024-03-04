@@ -51,21 +51,18 @@ jobs:
         run: |
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
-      - name: Build Release NUPKG
-        run: |
-          cd c_sharp
-          ./build-release-nupkg.sh
-      - uses: actions/upload-artifact@v3
+      - name: Upload packaging artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: org.ldk.nupkg
-          path: c_sharp/org.ldk.nupkg
-          
+          name: packaging_artifacts
+          path: c_sharp/packaging_artifacts
+
   c_sharp_macos:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-13
+          #- platform: macos-13
           - platform: macos-14
     runs-on: ${{ matrix.platform }}
     steps:
@@ -109,11 +106,30 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
-      - name: Build Release NUPKG
+      - name: Upload packaging artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: packaging_artifacts
+          path: c_sharp/packaging_artifacts
+
+  create_nuget:
+    needs: [ c_sharp_linux, c_sharp_macos ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and extract packaging artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: packaging_artifacts
+          path: packaging_artifacts
+      - name: Create Nuget package
         run: |
-          cd c_sharp
-          ./build-release-nupkg.sh
-      - uses: actions/upload-artifact@v3
+          ls -R
+          # from build-release-nupkg.sh
+          cd packaging_artifacts
+          find . | xargs -L1 touch -d "2021-01-01 00:00 UTC" 
+          zip -Xvu ../org.ldk.nupkg * */* */*/* */*/*/* */*/*/*/*
+      - name: Upload nuget package as as artifact
+        uses: actions/upload-artifact@v3
         with:
           name: org.ldk.nupkg
-          path: c_sharp/org.ldk.nupkg
+          path: org.ldk.nupkg
