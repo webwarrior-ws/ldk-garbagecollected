@@ -130,9 +130,9 @@ jobs:
           # from build-release-nupkg.sh
           cd packaging_artifacts
           find . | xargs -L1 touch -d "2021-01-01 00:00 UTC" 
-          zip -Xvu ../org.ldk.nupkg * */* */*/* */*/*/* */*/*/*/*
+          zip -Xvu ../LdkSharp.nupkg * */* */*/* */*/*/* */*/*/*/*
       - name: Upload nuget package as as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: org.ldk.nupkg
-          path: org.ldk.nupkg
+          name: LdkSharp.nupkg
+          path: LdkSharp.nupkg

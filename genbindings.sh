@@ -139,11 +139,11 @@ if [ "$2" = "c_sharp" ]; then
 	[ "$($CC --version | grep "Apple clang version")" != "" ] && IS_APPLE_CLANG=true
 
 	if is_gnu_sed; then
-		sed -i "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/org.ldk.nuspec
+		sed -i "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/LdkSharp.nuspec
 		sed -i "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/package/services/metadata/core-properties/ldk.psmdcp
 	else
 		# OSX sed is for some reason not compatible with GNU sed
-		sed -i '' "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/org.ldk.nuspec
+		sed -i '' "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/LdkSharp.nuspec
 		sed -i '' "s/<version>.*<\/version>/<version>${LDK_GARBAGECOLLECTED_GIT_OVERRIDE:1:100}<\/version>/g" c_sharp/packaging_artifacts/package/services/metadata/core-properties/ldk.psmdcp
 	fi
 
