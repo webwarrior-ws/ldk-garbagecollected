@@ -105,7 +105,10 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
-          ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
+          # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
+          for i in 1 2 3; do 
+            ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
+          done
       - name: Upload packaging artifacts
         uses: actions/upload-artifact@v3
         with:
