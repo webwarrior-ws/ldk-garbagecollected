@@ -100,7 +100,7 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           cd ldk-c-bindings
           ./genbindings.sh ../rust-lightning true skip-tests
-      - name: Build
+      - name: Build C# bindings for MacOS-Arm
         run: |
           export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
@@ -108,6 +108,15 @@ jobs:
           # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
           for i in 1 2 3; do 
             ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
+          done
+      - name: Build C# bindings for MacOS-x64
+        run: |
+          export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
+          export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
+          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
+          # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
+          for i in 1 2 3; do 
+            LDK_TARGET=x86_64-apple-darwin ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
           done
       - name: Upload packaging artifacts
         uses: actions/upload-artifact@v3
