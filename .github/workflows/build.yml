@@ -101,6 +101,8 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           cd ldk-c-bindings
           ./genbindings.sh ../rust-lightning true skip-tests
+          # also build bindings for x64
+          LDK_TARGET=x86_64-apple-darwin ./genbindings.sh ../rust-lightning true skip-tests
       - name: Build C# bindings for MacOS-Arm
         run: |
           export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
