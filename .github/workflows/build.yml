@@ -65,6 +65,7 @@ jobs:
           #- platform: macos-13
           - platform: macos-14
     runs-on: ${{ matrix.platform }}
+    timeout-minutes: 45
     steps:
       - name: Install Rust components
         run: |
