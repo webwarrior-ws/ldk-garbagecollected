@@ -89,7 +89,10 @@ if [ "$LDK_TARGET_CPU" = "" ]; then
 fi
 
 COMMON_COMPILE="$CC -std=c11 -Wall -Wextra -Wno-unused-parameter -Wno-ignored-qualifiers -Wno-unused-function -Wno-nullability-completeness -Wno-pointer-sign -Wdate-time -ffile-prefix-map=$(pwd)="
-[ "$IS_MAC" = "true" -a "$2" != "wasm" -a "$TARGET_STRING" != "x86_64-apple-darwin" ] && COMMON_COMPILE="$COMMON_COMPILE --target=$TARGET_STRING -mcpu=$LDK_TARGET_CPU"
+if [ "$IS_MAC" = "true" -a "$2" != "wasm" ]; then
+    COMMON_COMPILE="$COMMON_COMPILE --target=$TARGET_STRING" 
+    [ "$TARGET_STRING" != "x86_64-apple-darwin" ] &&  COMMON_COMPILE="$COMMON_COMPILE -mcpu=$LDK_TARGET_CPU"
+fi
 
 DEBUG_ARG="$3"
 if [ "$3" = "leaks" ]; then
