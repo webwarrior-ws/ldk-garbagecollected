@@ -106,8 +106,9 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
-          # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
-          for i in 1 2 3; do 
+          # sometimes genbindings.sh fails for unknown reason, so retry up to 5 times
+          for i in 1 2 3 4 5; do 
+            echo "arm; iteration $i"
             ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
           done
       - name: Build C# bindings for MacOS-x64
@@ -115,9 +116,11 @@ jobs:
           export PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin:$PATH"
           export PATH="$HOMEBREW_PREFIX/opt/llvm/bin:$PATH"
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
-          # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
-          for i in 1 2 3; do 
-            LDK_TARGET=x86_64-apple-darwin ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
+          export LDK_TARGET=x86_64-apple-darwin
+          # sometimes genbindings.sh fails for unknown reason, so retry up to 5 times
+          for i in 1 2 3 4 5; do 
+            echo "x64; iteration $i"
+            ./genbindings.sh ./ldk-c-bindings/ c_sharp false false && break 
           done
       - name: Upload packaging artifacts
         uses: actions/upload-artifact@v3
