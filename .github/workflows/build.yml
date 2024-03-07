@@ -160,5 +160,5 @@ jobs:
       - name: Publish nuget package on nuget.org
         run: |
           if [ ${{ secrets.NUGET_API_KEY }} ]; then
-            dotnet nuget push ./LdkSharp.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json -SkipDuplicate
+            dotnet nuget push ./LdkSharp.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
           fi
