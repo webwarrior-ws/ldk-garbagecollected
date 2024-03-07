@@ -2,6 +2,9 @@ name: Continuous Integration Checks
 
 on: [push, pull_request]
 
+env:
+  NUGET_PACKAGE_VERSION: 0.0.0.3
+
 jobs:
   c_sharp_determinism:
     runs-on: ubuntu-latest
@@ -51,21 +54,21 @@ jobs:
         run: rm c_sharp/src/org/ldk/enums/*.cs c_sharp/src/org/ldk/impl/*.cs c_sharp/src/org/ldk/structs/*.cs
       - name: Build Windows C# Bindings
         run: |
-          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
+          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="v$NUGET_PACKAGE_VERSION"
           LDK_TARGET=x86_64-pc-windows-gnu LDK_TARGET_CPU=sandybridge ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
       - name: Build Linux C# Bindings
         run: |
-          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
+          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="v$NUGET_PACKAGE_VERSION"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
       - name: Build macOS x86-64 C# Bindings
         run: |
           export MACOS_SDK="$PWD/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers"
-          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
+          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="v$NUGET_PACKAGE_VERSION"
           CC=clang LDK_TARGET=x86_64-apple-darwin LDK_TARGET_CPU=sandybridge ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
       - name: Build macOS aarch64 C# Bindings
         run: |
           export MACOS_SDK="$PWD/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers"
-          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
+          export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="v$NUGET_PACKAGE_VERSION"
           CC=clang LDK_TARGET=aarch64-apple-darwin LDK_TARGET_CPU=apple-a14 ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
       - name: Build Release NUPKG
         run: |
@@ -75,3 +78,8 @@ jobs:
         with:
           name: LdkSharp.nupkg
           path: c_sharp/LdkSharp.nupkg
+      - name: Publish nuget package on nuget.org
+        run: |
+          if [ ${{ secrets.NUGET_API_KEY }} ]; then
+            dotnet nuget push c_sharp/LdkSharp.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json
+          fi
