@@ -3,7 +3,7 @@ name: Continuous Integration Checks
 on: [push, pull_request]
 
 jobs:
-  c_sharp_linux:
+  c_sharp_fedora:
     runs-on: ubuntu-latest
     # Ubuntu's version of clang doesn't support....anything that should work.
     # Ubuntu is an utter trash OS and should generally never be used for anything.
@@ -11,7 +11,6 @@ jobs:
     container: fedora:39
     strategy:
       fail-fast: false
-    timeout-minutes: 60
     steps:
       - name: Install required dependencies
         run: |
@@ -52,12 +51,79 @@ jobs:
         run: |
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
-      - name: Build MacOS Arm C# bindings
+      - name: Upload packaging artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: packaging_artifacts
+          path: c_sharp/packaging_artifacts
+
+  c_sharp_debian:
+    runs-on: ubuntu-latest
+    # Ubuntu's version of clang doesn't support....anything that should work.
+    # Ubuntu is an utter trash OS and should generally never be used for anything.
+    # We also require dotnet so we use fedora
+    container: debian:bookworm
+    strategy:
+      fail-fast: false
+    steps:
+      - name: Install required dependencies
+        run: |
+          apt-get update
+          apt-get install -y wget
+          wget https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          dpkg -i packages-microsoft-prod.deb
+          apt-get update && apt-get install -y dotnet-sdk-8.0
+          apt-get install -y git which
+          apt-get -y install cargo valgrind lld g++ llvm clang rust-src faketime
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install cbindgen
+        run: |
+          git config --global safe.directory '*'
+          git clone https://github.com/eqrion/cbindgen
+          cd cbindgen/
+          git checkout v0.20.0
+          cargo update -p indexmap --precise "1.6.2" --verbose
+          cargo install --locked --path .
+      - name: Checkout Rust-Lightning and LDK-C-Bindings git
+        run: |
+          git config --global safe.directory '*'
+          git config --global user.email "ldk-ci@example.com"
+          git config --global user.name "LDK CI"
+          # Note this is a different endpoint, as we need one non-upstream commit!
+          git clone https://github.com/lightningdevkit/rust-lightning
+          cd rust-lightning
+          git checkout origin/0.0.121-bindings
+          cd ..
+          git clone https://github.com/lightningdevkit/ldk-c-bindings
+          cd ldk-c-bindings
+          git checkout 0.0.121
+          cd lightning-c-bindings
+          cargo update -p memchr --precise "2.5.0" --verbose
+          touch src/version.rs
+          RUSTFLAGS="--cfg=c_bindings" cargo check --features std
+      - name: Fetch MacOS SDK
+        run: |
+          cd ldk-c-bindings
+          wget https://bitcoincore.org/depends-sources/sdks/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz
+          tar xvvf Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers.tar.gz
+      - name: Rebuild bindings, and check the sample app builds + links
+        run: |
+          # rust-src doesn't distribute the rustlib Cargo.lock, but an empty
+          # file seems to suffice to make `-Zbuild-std` happy.
+          # touch /usr/lib/rustlib/src/rust/Cargo.lock
+          cd ldk-c-bindings
+          touch /usr/lib/rustlib/src/rust/Cargo.lock
+          MACOS_SDK="$PWD/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers" ./genbindings.sh ../rust-lightning true
+      - name: Remove checked-in source to ensure its correctly checked-in
+        run: rm c_sharp/src/org/ldk/enums/*.cs c_sharp/src/org/ldk/impl/*.cs c_sharp/src/org/ldk/structs/*.cs
+      - name: Build MacOS Arm64 C# Bindings
         run: |
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
-          # sometimes genbindings.sh fails for unknown reason, so retry up to 3 times
           MACOS_SDK="$PWD/ldk-c-bindings/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers" LDK_TARGET=aarch64-apple-darwin LDK_TARGET_CPU=apple-a14 ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
-      - name: Build MacOS x64 C# bindings
+      - name: Build MacOS X64 C# Bindings
         run: |
           export LDK_GARBAGECOLLECTED_GIT_OVERRIDE="$(git describe --tag HEAD)"
           MACOS_SDK="$PWD/ldk-c-bindings/Xcode-12.2-12B45b-extracted-SDK-with-libcxx-headers" LDK_TARGET=x86_64-apple-darwin ./genbindings.sh ./ldk-c-bindings/ c_sharp false false
@@ -65,15 +131,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: packaging_artifacts
-          path: c_sharp/packaging_artifacts          
-      - name: Upload packaging artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: packaging_artifacts
           path: c_sharp/packaging_artifacts
 
   create_nuget:
-    needs: [ c_sharp_linux ]
+    needs: [ c_sharp_fedora, c_sharp_debian ]
     runs-on: ubuntu-latest
     steps:
       - name: Download and extract packaging artifacts
