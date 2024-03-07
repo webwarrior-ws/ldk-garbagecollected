@@ -11,6 +11,7 @@ jobs:
     container: fedora:39
     strategy:
       fail-fast: false
+    timeout-minutes: 60
     steps:
       - name: Install required dependencies
         run: |
