@@ -73,5 +73,5 @@ jobs:
           ./build-release-nupkg.sh
       - uses: actions/upload-artifact@v3
         with:
-          name: org.ldk.nupkg
-          path: c_sharp/org.ldk.nupkg
+          name: LdkSharp.nupkg
+          path: c_sharp/LdkSharp.nupkg
