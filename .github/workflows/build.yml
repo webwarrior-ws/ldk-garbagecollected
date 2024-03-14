@@ -58,6 +58,9 @@ jobs:
           for i in 1 2 3 4 5; do
             ./genbindings.sh ../rust-lightning false && break
           done
+      - name: Set package version
+        run: |
+          echo "LDK_GARBAGECOLLECTED_GIT_OVERRIDE=v$NUGET_PACKAGE_VERSION" >> "$GITHUB_ENV"          
       - name: Build and Test TS Debug Bindings for Node
         run: |
           # We need FinalizationRegistry and top-level await support, which requires node 14.6/8,
@@ -159,6 +162,9 @@ jobs:
           for i in 1 2 3 4 5; do
             ./genbindings.sh ../rust-lightning true && break
           done
+      - name: Set package version
+        run: |
+          echo "LDK_GARBAGECOLLECTED_GIT_OVERRIDE=v$NUGET_PACKAGE_VERSION" >> "$GITHUB_ENV"
       - name: Build and Test C# Debug Bindings
         run: |
           ./genbindings.sh ./ldk-c-bindings/ c_sharp true true
@@ -297,6 +303,9 @@ jobs:
           for i in 1 2 3 4 5; do
             ./genbindings.sh ../rust-lightning true && break
           done
+      - name: Set package version
+        run: |
+          echo "LDK_GARBAGECOLLECTED_GIT_OVERRIDE=v$NUGET_PACKAGE_VERSION" >> "$GITHUB_ENV"
       - name: Build Java Debug Bindings
         run: ./genbindings.sh ./ldk-c-bindings/ "-I/usr/lib/jvm/java-17-openjdk-amd64/include/ -I/usr/lib/jvm/java-17-openjdk-amd64/include/linux/" true false
       - name: Run Java Tests against Debug Bindings
